@@ -1,0 +1,26 @@
+#!/bin/bash
+# count the number of empty cells in each column
+filename="$1"
+delimiter="$2"
+awk -F"$delimiter" 'NR==1 {
+   
+    for (i=1; i<=NF; i++) {
+        cols[i] = $i
+        empties[i] = 0
+    }
+    next
+}
+{
+    # check if each column is empty 
+    for (i=1; i<=NF; i++) {
+        if ($i == "" || $i ~ /^[[:space:]]+$/) {
+            empties[i]++
+        }
+    }
+}
+END {
+    # Output the column names and the corresponding count of empty cells
+    for (i=1; i<=length(cols); i++) {
+        print cols[i] ": " empties[i]
+    }
+}' "$filename"
