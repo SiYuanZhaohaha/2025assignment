@@ -1,0 +1,92 @@
+#!/bin/bash
+
+
+file="$1"
+if [[ -z "$file" || ! -f "$file" ]]; then
+    echo "Usage: $0 <cleaned-tsv>" >&2
+    exit 1
+fi
+
+awk -F'\t' '
+BEGIN { OFS = "\t" }
+
+NR==1 {
+    # 记录列索引
+    for (i = 1; i <= NF; i++) {
+        if     ($i == "Mechanics")          mechCol = i
+        else if($i == "Domains")            domCol  = i
+        else if($i == "Year Published")     yearCol = i
+        else if($i == "Rating Average")     rateCol = i
+        else if($i == "Complexity Average") compCol = i
+    }
+    next
+}
+
+{
+    # --- Mechanics ---
+    if (mechCol && $mechCol != "") {
+        n = split($mechCol, a, /,[[:space:]]*/)
+        for (j = 1; j <= n; j++) {
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", a[j])
+            if (a[j] != "") mechCnt[a[j]]++
+        }
+    }
+
+    # --- Domains ---
+    if (domCol && $domCol != "") {
+        m = split($domCol, b, /,[[:space:]]*/)
+        for (j = 1; j <= m; j++) {
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", b[j])
+            if (b[j] != "") domCnt[b[j]]++
+        }
+    }
+
+    # --- Year vs Rating ---
+    if (yearCol && rateCol &&
+        $yearCol ~ /^[0-9]+$/ &&
+        $rateCol ~ /^[0-9]+(\.[0-9]+)?$/) {
+        y  = $yearCol + 0
+        r  = $rateCol + 0
+        sY += y;  sY2 += y*y
+        sR += r;  sR2 += r*r
+        sYR += y*r; n1++
+    }
+
+    # --- Complexity vs Rating ---
+    if (compCol && rateCol &&
+        $compCol ~ /^[0-9]+(\.[0-9]+)?$/ &&
+        $rateCol ~ /^[0-9]+(\.[0-9]+)?$/) {
+        c  = $compCol + 0
+        r2 = $rateCol + 0
+        sC += c;  sC2 += c*c
+        sR3 += r2; sR3_2 += r2*r2
+        sCR += c*r2; n2++
+    }
+}
+
+END {
+    # 取出现次数最多的 Mechanic / Domain
+    for (k in mechCnt) if (mechCnt[k] > maxMech) { maxMech = mechCnt[k]; maxMechName = k }
+    for (k in domCnt)  if (domCnt[k]  > maxDom ) { maxDom  = domCnt[k];  maxDomName  = k }
+
+    # Pearson: Year vs Rating
+    if (n1) {
+        num1 = n1*sYR - sY*sR
+        den1 = sqrt( (n1*sY2 - sY^2) * (n1*sR2 - sR^2) )
+        r1   = (den1 ? num1/den1 : 0)
+    } else r1 = 0
+
+    # Pearson: Complexity vs Rating
+    if (n2) {
+        num2 = n2*sCR - sC*sR3
+        den2 = sqrt( (n2*sC2 - sC^2) * (n2*sR3_2 - sR3^2) )
+        r2   = (den2 ? num2/den2 : 0)
+    } else r2 = 0
+
+    # ----- 输出 -----
+    printf "Most common mechanic: %s (%d occurrences)\n", (maxMechName ? maxMechName : "N/A"), maxMech
+    printf "Most common domain: %s (%d occurrences)\n",   (maxDomName  ? maxDomName  : "N/A"), maxDom
+    printf "Pearson correlation (Year Published vs Rating Average): %.5f\n", r1
+    printf "Pearson correlation (Complexity Average vs Rating Average): %.5f\n", r2
+}
+' "$file"

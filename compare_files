@@ -1,0 +1,11 @@
+#!/bin/bash
+
+file1="$1"
+file2="$2"
+
+if diff -q "$file1" "$file2" >/dev/null; then
+    echo "✅ The two files are exactly the same."
+else
+    echo "❌ The two files are different. Showing differences:"
+    diff -u "$file1" "$file2"
+fi

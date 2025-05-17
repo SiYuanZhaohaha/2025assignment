@@ -1,0 +1,27 @@
+#!/bin/bash
+file="$1"
+
+id_col_index=$(head -n 1 "$file" | tr -d '\r' | awk -F';' '{for(i=1;i<=NF;i++){ if($i=="/ID"){print i; exit} } }')
+
+max_id=$(tr -d '\r' < "$file" | awk -F';' -v idcol="$id_col_index" '
+NR>1 && $idcol != "" && $idcol ~ /^[0-9]+$/ {
+    val = $idcol + 0
+    if(val > max) max = val
+}
+END { if(max == "") print 0; else print max }')
+
+sed -E 's/\r//g; s/;/\t/g; s/([0-9]),([0-9])/\1.\2/g' "$file" | LC_ALL=C tr -cd '\0-\177' | 
+
+awk -F'\t' -v OFS='\t' -v idcol="$id_col_index" -v max="$max_id" '
+NR==1 { 
+    # 打印表头行（已由上一步替换为TAB分隔）
+    print; next 
+} 
+{
+    # 若ID列为空则赋予新的ID（最大ID递增）
+    if($idcol == "") { 
+        max++ 
+        $idcol = max 
+    } 
+    print 
+}'
