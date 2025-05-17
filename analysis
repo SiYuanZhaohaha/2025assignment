@@ -84,9 +84,10 @@ END {
     } else r2 = 0
 
     # ----- 输出 -----
-    printf "Most common mechanic: %s (%d occurrences)\n", (maxMechName ? maxMechName : "N/A"), maxMech
-    printf "Most common domain: %s (%d occurrences)\n",   (maxDomName  ? maxDomName  : "N/A"), maxDom
-    printf "Pearson correlation (Year Published vs Rating Average): %.5f\n", r1
-    printf "Pearson correlation (Complexity Average vs Rating Average): %.5f\n", r2
+     printf "The most popular game mechanics is %s found in %d games\n", (maxMechName ? maxMechName : "N/A"), maxMech
+    printf "The most game domain is %s found in %d games\n",             (maxDomName  ? maxDomName  : "N/A"), maxDom
+    print ""
+    printf "The correlation between the year of publication and the average rating is %.3f\n", r1
+    printf "The correlation between the complexity of a game and its average rating is %.3f\n", r2
 }
 ' "$file"
