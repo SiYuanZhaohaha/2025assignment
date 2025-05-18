@@ -11,7 +11,7 @@ awk -F'\t' '
 BEGIN { OFS = "\t" }
 
 NR==1 {
-    # 记录列索引
+    # Record column index
     for (i = 1; i <= NF; i++) {
         if     ($i == "Mechanics")          mechCol = i
         else if($i == "Domains")            domCol  = i
@@ -23,7 +23,7 @@ NR==1 {
 }
 
 {
-    # --- Mechanics ---
+    #  Mechanics 
     if (mechCol && $mechCol != "") {
         n = split($mechCol, a, /,[[:space:]]*/)
         for (j = 1; j <= n; j++) {
@@ -32,7 +32,7 @@ NR==1 {
         }
     }
 
-    # --- Domains ---
+    # Domains
     if (domCol && $domCol != "") {
         m = split($domCol, b, /,[[:space:]]*/)
         for (j = 1; j <= m; j++) {
@@ -41,7 +41,7 @@ NR==1 {
         }
     }
 
-    # --- Year vs Rating ---
+    #Year vs Rating 
     if (yearCol && rateCol &&
         $yearCol ~ /^[0-9]+$/ &&
         $rateCol ~ /^[0-9]+(\.[0-9]+)?$/) {
@@ -52,7 +52,7 @@ NR==1 {
         sYR += y*r; n1++
     }
 
-    # --- Complexity vs Rating ---
+    # Complexity vs Rating 
     if (compCol && rateCol &&
         $compCol ~ /^[0-9]+(\.[0-9]+)?$/ &&
         $rateCol ~ /^[0-9]+(\.[0-9]+)?$/) {
@@ -65,7 +65,7 @@ NR==1 {
 }
 
 END {
-    # 取出现次数最多的 Mechanic / Domain
+    # Take the Mechanic/Domain that appears most frequently
     for (k in mechCnt) if (mechCnt[k] > maxMech) { maxMech = mechCnt[k]; maxMechName = k }
     for (k in domCnt)  if (domCnt[k]  > maxDom ) { maxDom  = domCnt[k];  maxDomName  = k }
 
@@ -83,8 +83,8 @@ END {
         r2   = (den2 ? num2/den2 : 0)
     } else r2 = 0
 
-    # ----- 输出 -----
-     printf "The most popular game mechanics is %s found in %d games\n", (maxMechName ? maxMechName : "N/A"), maxMech
+   
+    printf "The most popular game mechanics is %s found in %d games\n", (maxMechName ? maxMechName : "N/A"), maxMech
     printf "The most game domain is %s found in %d games\n",             (maxDomName  ? maxDomName  : "N/A"), maxDom
     print ""
     printf "The correlation between the year of publication and the average rating is %.3f\n", r1

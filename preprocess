@@ -14,11 +14,11 @@ sed -E 's/\r//g; s/;/\t/g; s/([0-9]),([0-9])/\1.\2/g' "$file" | LC_ALL=C tr -cd 
 
 awk -F'\t' -v OFS='\t' -v idcol="$id_col_index" -v max="$max_id" '
 NR==1 { 
-    # 打印表头行（已由上一步替换为TAB分隔）
+    # Print the header row of the table
     print; next 
 } 
 {
-    # 若ID列为空则赋予新的ID（最大ID递增）
+    # If the ID column is empty, a new ID is assigned 
     if($idcol == "") { 
         max++ 
         $idcol = max 
